@@ -85,9 +85,9 @@ export default function HomeMenu() {
       <nav className="flex items-center justify-between px-8 py-6 max-w-7xl mx-auto">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold">DT</span>
+            <span className="text-white font-bold">TS</span>
           </div>
-          <span className="text-white text-xl font-bold">DeepTruth </span>
+          <span className="text-white text-xl font-bold">TrueSight AI </span>
         </div>
         <div className="flex items-center gap-8">
           <button
@@ -123,7 +123,7 @@ export default function HomeMenu() {
                 </span>
               </h1>
               <p className="text-gray-300 text-lg leading-relaxed">
-                DeepTruth Streamlined is a smart solution designed to detect and analyze deepfake content whether it’s video, audio, or other digital media using advanced AI technology. It helps you quickly identify what’s authentic and what’s manipulated, ensuring your digital information stays reliable.
+                TrueSight AI Streamlined is a smart solution designed to detect and analyze deepfake content whether it’s video, audio, or other digital media using advanced AI technology. It helps you quickly identify what’s authentic and what’s manipulated, ensuring your digital information stays reliable.
               </p>
             </div>
 
@@ -154,11 +154,6 @@ export default function HomeMenu() {
                 <button className="px-8 py-3 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition text-white font-semibold flex items-center gap-2">
                   <span>🔍</span>
                   Scan Now
-                </button>
-              </Link>
-              <Link href="/features">
-                <button className="px-8 py-3 rounded-full border-2 border-blue-500/50 hover:border-blue-500 hover:bg-blue-500/10 transition text-blue-300 font-semibold">
-                  Learn More
                 </button>
               </Link>
             </div>
@@ -302,7 +297,7 @@ export default function HomeMenu() {
       {/* Footer */}
       <footer className="border-t border-blue-500/10 mt-20 py-8">
         <div className="max-w-7xl mx-auto px-8 text-center text-gray-400">
-          <p>© Copyright 2025 NgoSec-WC</p>
+          <p>© Copyright 2025 TrueSight</p>
         </div>
       </footer>
     </div>

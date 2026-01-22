@@ -71,9 +71,9 @@ export default function FeaturesPage() {
       <nav className="flex items-center justify-between px-8 py-6 max-w-7xl mx-auto">
         <Link href="/Home" className="flex items-center gap-2 hover:opacity-80 transition">
           <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold">DT</span>
+            <span className="text-white font-bold">TS</span>
           </div>
-          <span className="text-white text-xl font-bold">Powered By NgoSec-WC</span>
+          <span className="text-white text-xl font-bold">TrueSight AI</span>
         </Link>
         <div className="flex items-center gap-8">
           <Link href="/Home" className="text-gray-300 hover:text-white transition">Home</Link>
@@ -175,7 +175,7 @@ export default function FeaturesPage() {
       {/* Footer */}
       <footer className="border-t border-blue-500/10 mt-20 py-8">
         <div className="max-w-7xl mx-auto px-8 text-center text-gray-400">
-          <p>© Copyright 2025 NgoSec-WC</p>
+          <p>© Copyright 2025 TrueSight</p>
         </div>
       </footer>
     </div>
