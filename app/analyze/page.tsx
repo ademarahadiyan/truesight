@@ -5,66 +5,6 @@ import { useState, useRef } from "react";
 import { Card } from "@/components/ui/Card";
 import Link from "next/link";
 
-// Dummy Data
-const dummyVideo = {
-  score: 0.32,
-  heatmap: Array(30).fill(0).map((_, i) => (i === 12 || i === 13 ? 0.8 : Math.random() * 0.5)),
-  metadata: {
-    codec: "H.264",
-    bitrate: "2.5 Mbps",
-    fps: "30",
-    duration: "00:01:23",
-  },
-  encoder: "FFmpeg",
-  container: "MP4",
-};
-const dummyImage = {
-  score: 0.67,
-  exif: {
-    camera: "Canon EOS 80D",
-    lens: "EF-S 18-135mm",
-    edited: "Yes",
-    gps: "6.1751° S, 106.8650° E",
-  },
-  tampering: ["AI-generated", "GAN noise"],
-  heatmap: "https://via.placeholder.com/400x200?text=Heatmap+Overlay",
-  image: "https://via.placeholder.com/400x200?text=Image",
-};
-const dummyLink = {
-  whois: {
-    domain: "example.com",
-    created: "2023-01-01",
-    expires: "2026-01-01",
-    registrar: "Namecheap",
-    owner: "Private",
-  },
-  dns: [
-    { type: "A", value: "192.168.1.1" },
-    { type: "MX", value: "mail.example.com" },
-    { type: "TXT", value: "v=spf1 include:_spf.example.com ~all" },
-  ],
-  ssl: "Valid",
-  geo: {
-    ip: "192.168.1.1",
-    isp: "Indihome",
-    country: "Indonesia",
-    city: "Jakarta",
-    map: "https://via.placeholder.com/200x100?text=Map",
-  },
-  reputation: 0.15,
-};
-const dummyAudio = {
-  score: 0.45,
-  spectrogram: "https://via.placeholder.com/400x100?text=Spectrogram",
-  metadata: {
-    bitrate: "128 kbps",
-    codec: "AAC",
-    channels: "2",
-    sampleRate: "44.1 kHz",
-  },
-  voiceprint: 0.82,
-};
-
 export default function AnalyzePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -74,6 +14,8 @@ export default function AnalyzePage() {
   const [linkUrl, setLinkUrl] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [scanned, setScanned] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
   // Helper Gauge
   const Gauge = ({ value, label }: { value: number; label: string }) => (
@@ -211,65 +153,68 @@ export default function AnalyzePage() {
     </div>
   );
 
-  // Render Dummy Result
-  const renderDummy = () => {
+  // Render Result
+  const renderResult = () => {
     if (!scanned) return null;
-    if (type === "video") {
+    if (loading) {
+      return <Card className="p-6 border border-[#1e2a3a] rounded-lg bg-[#141c2c] mt-8 text-blue-300">Loading...</Card>;
+    }
+    if (type === "video" && result) {
       return (
         <Card className="p-6 border border-[#1e2a3a] rounded-lg bg-[#141c2c] space-y-6 mt-8">
-          <h3 className="text-blue-100 font-semibold text-lg">Video Analysis (Dummy)</h3>
-          <Gauge value={dummyVideo.score} label="Skor Keaslian Video" />
-          <HeatmapTimeline scores={dummyVideo.heatmap} />
-          <CardKV data={dummyVideo.metadata} />
+          <h3 className="text-blue-100 font-semibold text-lg">Video Analysis</h3>
+          <Gauge value={result.score ?? 0} label="Skor Keaslian Video" />
+          {result.heatmap && <HeatmapTimeline scores={result.heatmap} />}
+          {result.metadata && <CardKV data={result.metadata} />}
           <div>
-            <Badge text={dummyVideo.encoder} color="blue" />
-            <Badge text={dummyVideo.container} color="green" />
+            {result.encoder && <Badge text={result.encoder} color="blue" />}
+            {result.container && <Badge text={result.container} color="green" />}
           </div>
         </Card>
       );
     }
-    if (type === "image") {
+    if (type === "image" && result) {
       return (
         <Card className="p-6 border border-[#1e2a3a] rounded-lg bg-[#141c2c] space-y-6 mt-8">
-          <h3 className="text-blue-100 font-semibold text-lg">Image Analysis (Dummy)</h3>
-          <Gauge value={dummyImage.score} label="Skor Keaslian Gambar" />
-          <ImageOverlay image={dummyImage.image} heatmap={dummyImage.heatmap} />
-          <CardKV data={dummyImage.exif} />
+          <h3 className="text-blue-100 font-semibold text-lg">Image Analysis</h3>
+          <Gauge value={result.image_score ?? 0} label="Skor Keaslian Gambar" />
+          {result.image && result.heatmap && <ImageOverlay image={result.image} heatmap={result.heatmap} />}
+          {result.exif && <CardKV data={result.exif} />}
           <div>
-            {dummyImage.tampering.map((t, i) => (
+            {result.tampering && result.tampering.map((t: string, i: number) => (
               <Badge key={i} text={t} color={i % 2 === 0 ? "red" : "yellow"} />
             ))}
           </div>
         </Card>
       );
     }
-    if (type === "link") {
+    if (type === "link" && result) {
       return (
         <Card className="p-6 border border-[#1e2a3a] rounded-lg bg-[#141c2c] space-y-6 mt-8">
-          <h3 className="text-blue-100 font-semibold text-lg">Link/Domain Analysis (Dummy)</h3>
-          <CardKV data={dummyLink.whois} />
-          <Table data={dummyLink.dns} />
-          <Badge text={`SSL: ${dummyLink.ssl}`} color={dummyLink.ssl === "Valid" ? "green" : "red"} />
-          <MiniMap url={dummyLink.geo.map} />
-          <CardKV data={{ IP: dummyLink.geo.ip, ISP: dummyLink.geo.isp, Country: dummyLink.geo.country, City: dummyLink.geo.city }} />
-          <Gauge value={dummyLink.reputation} label="Domain Reputation" />
+          <h3 className="text-blue-100 font-semibold text-lg">Link/Domain Analysis</h3>
+          {result.whois && <CardKV data={result.whois} />}
+          {result.dns && <Table data={result.dns} />}
+          {result.ssl && <Badge text={`SSL: ${result.ssl}`} color={result.ssl === "Valid" ? "green" : "red"} />}
+          {result.geo && result.geo.map && <MiniMap url={result.geo.map} />}
+          {result.geo && <CardKV data={{ IP: result.geo.ip, ISP: result.geo.isp, Country: result.geo.country, City: result.geo.city }} />}
+          <Gauge value={result.reputation ?? 0} label="Domain Reputation" />
         </Card>
       );
     }
-    if (type === "audio") {
+    if (type === "audio" && result) {
       return (
         <Card className="p-6 border border-[#1e2a3a] rounded-lg bg-[#141c2c] space-y-6 mt-8">
-          <h3 className="text-blue-100 font-semibold text-lg">Audio Analysis (Dummy)</h3>
-          <Gauge value={dummyAudio.score} label="Skor Keaslian Audio" />
-          <Spectrogram url={dummyAudio.spectrogram} />
-          <CardKV data={dummyAudio.metadata} />
-          <SimilarityBar value={dummyAudio.voiceprint} />
+          <h3 className="text-blue-100 font-semibold text-lg">Audio Analysis</h3>
+          <Gauge value={result.score ?? 0} label="Skor Keaslian Audio" />
+          {result.spectrogram && <Spectrogram url={result.spectrogram} />}
+          {result.metadata && <CardKV data={result.metadata} />}
+          {typeof result.voiceprint === "number" && <SimilarityBar value={result.voiceprint} />}
         </Card>
       );
     }
     return (
       <Card className="p-6 border border-[#1e2a3a] rounded-lg bg-[#141c2c] mt-8">
-        <h3 className="text-blue-100 font-semibold text-lg">Pilih kategori untuk demo dummy</h3>
+        <h3 className="text-blue-100 font-semibold text-lg">Pilih kategori untuk analisa</h3>
       </Card>
     );
   };
@@ -313,8 +258,20 @@ export default function AnalyzePage() {
                   className="w-full px-4 py-3 bg-[#0b1220] border border-[#1e2a3a] rounded-lg text-blue-100 placeholder-blue-400 focus:outline-none focus:border-blue-500 transition"
                 />
                 <button
-                  onClick={() => setScanned(true)}
+                  onClick={async () => {
+                    if (!linkUrl) return;
+                    setLoading(true);
+                    setScanned(true);
+                    try {
+                      const res = await (await import("@/libs/api")).api.analyzeOsint<any>(linkUrl);
+                      setResult(res);
+                    } catch (err) {
+                      setResult({ error: "Gagal analisa link" });
+                    }
+                    setLoading(false);
+                  }}
                   className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                  disabled={!linkUrl}
                 >
                   <span>🔍</span>
                   Analyze
@@ -349,7 +306,26 @@ export default function AnalyzePage() {
                 )}
                 {/* Analyze Button */}
                 <button
-                  onClick={() => setScanned(true)}
+                  onClick={async () => {
+                    if (!file) return;
+                    setLoading(true);
+                    setScanned(true);
+                    try {
+                      if (type === "image") {
+                        const res = await (await import("@/libs/api")).api.extractMetadata<any>(file);
+                        setResult(res);
+                      } else if (type === "audio") {
+                        const res = await (await import("@/libs/api")).api.uploadAudio<any>(file);
+                        setResult(res);
+                      } else if (type === "video") {
+                        const res = await (await import("@/libs/api")).api.uploadVideo<any>(file);
+                        setResult(res);
+                      }
+                    } catch (err) {
+                      setResult({ error: `Gagal analisa ${type}` });
+                    }
+                    setLoading(false);
+                  }}
                   className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                   disabled={!file}
                 >
@@ -359,8 +335,8 @@ export default function AnalyzePage() {
               </div>
             )}
           </div>
-          {/* Dummy Result */}
-          {renderDummy()}
+          {/* Result */}
+          {renderResult()}
         </div>
       </div>
     </div>

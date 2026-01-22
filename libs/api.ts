@@ -101,7 +101,7 @@ export const api = {
     console.log("   File:", file.name, file.type, file.size);
 
     try {
-      const res = await (fullUrl, {{
+      const res = await fetch(fullUrl, {
         method: "POST",
         body: formData,
       });
