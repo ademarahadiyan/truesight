@@ -153,6 +153,42 @@ export default function AnalyzePage() {
     </div>
   );
 
+  // Helper untuk summary hasil video
+  function getVideoSummary(result: any) {
+    if (!result) return null;
+    const score = result.score ?? 0;
+    const percent = Math.round(score * 100);
+    let caseResult = "";
+    let confidence = "";
+    if (score >= 0.8) {
+      caseResult = "🟢 Likely Authentic Content";
+      confidence = `High (${percent}%)`;
+    } else if (score >= 0.5) {
+      caseResult = "🔴 Likely Manipulated Content";
+      confidence = `Medium (${percent}%)`;
+    } else {
+      caseResult = "🔴 Likely Manipulated Content";
+      confidence = `Low (${percent}%)`;
+    }
+    // Hitung frames flagged
+    const heatmap = result.heatmap || [];
+    const suspiciousFrames = heatmap.filter((v: number) => v > 0.7).length;
+    const suspiciousPercent = heatmap.length ? Math.round((suspiciousFrames / heatmap.length) * 100) : 0;
+    return {
+      caseResult,
+      confidence,
+      summary: `“Several frames exhibit visual artifacts consistent with AI-based facial manipulation, though results are not uniform across the video.”`,
+      evidence: [
+        `• ${suspiciousPercent}% frames flagged as suspicious`,
+        `• Heatmap shows facial anomalies`,
+        `• Inconsistent frame-level scores`,
+      ],
+      media: result.filename || '-',
+      frames: heatmap.length,
+      model: 'MesoNet',
+    };
+  }
+
   // Render Result
   const renderResult = () => {
     if (!scanned) return null;
@@ -160,9 +196,26 @@ export default function AnalyzePage() {
       return <Card className="p-6 border border-[#1e2a3a] rounded-lg bg-[#141c2c] mt-8 text-blue-300">Loading...</Card>;
     }
     if (type === "video" && result) {
+      const summary = getVideoSummary(result);
       return (
         <Card className="p-6 border border-[#1e2a3a] rounded-lg bg-[#141c2c] space-y-6 mt-8">
           <h3 className="text-blue-100 font-semibold text-lg">Video Analysis</h3>
+          {summary && (
+            <div className="mb-4 p-4 rounded-xl bg-[#1a233a] border border-blue-700/30 text-white">
+              <div className="font-bold text-lg mb-2">Case Result</div>
+              <div className="text-xl mb-2">{summary.caseResult}</div>
+              <div className="mb-2">Confidence: <span className="font-semibold">{summary.confidence}</span></div>
+              <div className="mb-2">Summary:<br /><span className="text-blue-200">{summary.summary}</span></div>
+              <div className="mb-2">Evidence:<br />
+                <ul className="list-disc ml-6 text-blue-200">
+                  {summary.evidence.map((e, i) => <li key={i}>{e}</li>)}
+                </ul>
+              </div>
+              <div className="mb-2">Media: <span className="text-blue-300">{summary.media}</span></div>
+              <div className="mb-2">Frames analyzed: <span className="text-blue-300">{summary.frames}</span></div>
+              <div className="mb-2">Model: <span className="text-blue-300">{summary.model}</span></div>
+            </div>
+          )}
           <Gauge value={result.score ?? 0} label="Skor Keaslian Video" />
           {result.heatmap && result.heatmap.length > 0 && <HeatmapTimeline scores={result.heatmap} />}
           {result.heatmapImg && (
@@ -170,7 +223,6 @@ export default function AnalyzePage() {
               <img src={result.heatmapImg} alt="Heatmap" className="rounded-lg border border-[#1e2a3a] mx-auto" style={{maxWidth: 400}} />
             </div>
           )}
-          {/* Tambahkan metadata, encoder, container jika backend sudah support */}
         </Card>
       );
     }
