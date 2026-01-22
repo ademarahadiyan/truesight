@@ -164,12 +164,13 @@ export default function AnalyzePage() {
         <Card className="p-6 border border-[#1e2a3a] rounded-lg bg-[#141c2c] space-y-6 mt-8">
           <h3 className="text-blue-100 font-semibold text-lg">Video Analysis</h3>
           <Gauge value={result.score ?? 0} label="Skor Keaslian Video" />
-          {result.heatmap && <HeatmapTimeline scores={result.heatmap} />}
-          {result.metadata && <CardKV data={result.metadata} />}
-          <div>
-            {result.encoder && <Badge text={result.encoder} color="blue" />}
-            {result.container && <Badge text={result.container} color="green" />}
-          </div>
+          {result.heatmap && result.heatmap.length > 0 && <HeatmapTimeline scores={result.heatmap} />}
+          {result.heatmapImg && (
+            <div className="my-4">
+              <img src={result.heatmapImg} alt="Heatmap" className="rounded-lg border border-[#1e2a3a] mx-auto" style={{maxWidth: 400}} />
+            </div>
+          )}
+          {/* Tambahkan metadata, encoder, container jika backend sudah support */}
         </Card>
       );
     }
@@ -319,7 +320,14 @@ export default function AnalyzePage() {
                         setResult(res);
                       } else if (type === "video") {
                         const res = await (await import("@/libs/api")).api.uploadVideo<any>(file);
-                        setResult(res);
+                        // Mapping agar sesuai dengan struktur frontend
+                        setResult({
+                          score: res.analysis?.video_score ?? 0,
+                          heatmap: res.analysis?.frame_scores ?? [],
+                          heatmapImg: res.analysis?.frame_heatmap_path ?? null,
+                          filename: res.filename ?? '',
+                          // Tambahkan mapping lain jika backend sudah support
+                        });
                       }
                     } catch (err) {
                       setResult({ error: `Gagal analisa ${type}` });
